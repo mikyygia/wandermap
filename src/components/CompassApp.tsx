@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Itinerary, Place, TravelProfile } from "@/lib/types";
 import { SidebarChat, type ChatMessage } from "@/components/SidebarChat";
 import { MapView } from "@/components/MapView";
@@ -10,6 +10,12 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 const PROFILE_KEY = "compass.travelProfile.v1";
 const ACCOUNT_KEY = "compass.account.v1";
 const ONBOARDING_KEY = "compass.onboardingComplete.v1";
+const SIDEBAR_WIDTH_KEY = "compass.sidebarWidth.v1";
+const SIDEBAR_OPEN_KEY = "compass.sidebarOpen.v1";
+
+const SIDEBAR_WIDTH_DEFAULT = 340;
+const SIDEBAR_WIDTH_MIN = 280;
+const SIDEBAR_WIDTH_MAX = 520;
 
 function defaultProfile(): TravelProfile {
   return {
@@ -33,13 +39,20 @@ export function CompassApp() {
   const [isReady, setIsReady] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_DEFAULT);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startWidth: number;
+    target: HTMLElement;
+  } | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
       kind: "text",
       content:
-        "Tell me where you're going and what vibe you want. I’ll turn it into a 1–3 day plan with pins.",
+        "Share your travel profile to start. I will turn your chat requests into a mapped day-by-day itinerary.",
     },
   ]);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
@@ -50,6 +63,8 @@ export function CompassApp() {
       const raw = localStorage.getItem(PROFILE_KEY);
       const storedAccount = localStorage.getItem(ACCOUNT_KEY);
       const done = localStorage.getItem(ONBOARDING_KEY) === "true";
+      const storedWidth = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+      const storedOpen = localStorage.getItem(SIDEBAR_OPEN_KEY);
 
       if (raw) setTravelProfile(JSON.parse(raw) as TravelProfile);
       else setTravelProfile(defaultProfile());
@@ -59,6 +74,22 @@ export function CompassApp() {
       }
 
       setIsOnboarded(done);
+
+      if (storedWidth) {
+        const parsed = Number(storedWidth);
+        if (!Number.isNaN(parsed)) {
+          setSidebarWidth(
+            Math.min(
+              SIDEBAR_WIDTH_MAX,
+              Math.max(SIDEBAR_WIDTH_MIN, parsed),
+            ),
+          );
+        }
+      }
+
+      if (storedOpen === "true" || storedOpen === "false") {
+        setIsSidebarOpen(storedOpen === "true");
+      }
     } catch {
       setTravelProfile(defaultProfile());
       setAccount(defaultAccount());
@@ -78,6 +109,45 @@ export function CompassApp() {
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
     localStorage.setItem(ONBOARDING_KEY, String(isOnboarded));
   }, [account, isOnboarded, isReady]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
+    localStorage.setItem(SIDEBAR_OPEN_KEY, String(isSidebarOpen));
+  }, [isReady, isSidebarOpen, sidebarWidth]);
+
+  useEffect(() => {
+    function onPointerMove(e: PointerEvent) {
+      const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+      const delta = e.clientX - drag.startX;
+      const next = Math.min(
+        SIDEBAR_WIDTH_MAX,
+        Math.max(SIDEBAR_WIDTH_MIN, drag.startWidth + delta),
+      );
+      setSidebarWidth(next);
+    }
+
+    function onPointerUp(e: PointerEvent) {
+      const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+      dragRef.current = null;
+      try {
+        drag.target.releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, []);
 
   const allPlaces = useMemo(() => {
     const places: Array<Place & { day: number }> = [];
@@ -124,19 +194,48 @@ export function CompassApp() {
         />
 
         <aside
-          className={[
-            "absolute inset-y-0 left-0 z-30 w-[320px] border-r border-[color:rgba(122,85,68,0.2)] bg-[color:#c9b59f] shadow-[18px_0_60px_rgba(61,43,31,0.12)] transition-transform duration-300",
-            isSidebarOpen ? "translate-x-0" : "-translate-x-[288px]",
-          ].join(" ")}
+          style={{
+            width: sidebarWidth,
+            transform: isSidebarOpen
+              ? "translateX(0)"
+              : "translateX(calc(-100% + 14px))",
+            transition: "transform 300ms ease-out",
+          }}
+          className="absolute inset-y-0 left-0 z-30 border-r border-[color:rgba(122,85,68,0.2)] bg-[color:#c9b59f] shadow-[18px_0_60px_rgba(61,43,31,0.12)]"
         >
           <button
             type="button"
             onClick={() => setIsSidebarOpen((prev) => !prev)}
             aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            className="absolute right-3 top-16 z-40 grid h-10 w-10 place-items-center rounded-full border border-[color:rgba(61,43,31,0.24)] bg-[color:rgba(250,247,242,0.9)] text-[20px] text-[color:var(--color-coffee)] shadow-sm"
+            className="absolute -right-3 top-16 z-40 grid h-10 w-10 place-items-center rounded-full border border-[color:rgba(61,43,31,0.24)] bg-[color:rgba(250,247,242,0.95)] text-[18px] leading-none text-[color:var(--color-coffee)] shadow-[0_10px_30px_rgba(61,43,31,0.12)]"
           >
-            {isSidebarOpen ? "‹" : "›"}
+            {isSidebarOpen ? "‹‹" : "››"}
           </button>
+
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize chat sidebar"
+            onPointerDown={(e) => {
+              if (!isSidebarOpen) return;
+              e.preventDefault();
+              const target = e.currentTarget as HTMLDivElement;
+              dragRef.current = {
+                pointerId: e.pointerId,
+                startX: e.clientX,
+                startWidth: sidebarWidth,
+                target,
+              };
+              target.setPointerCapture(e.pointerId);
+            }}
+            className={[
+              "absolute inset-y-0 right-0 z-50 w-2 cursor-col-resize select-none",
+              isSidebarOpen ? "" : "pointer-events-none opacity-0",
+            ].join(" ")}
+          >
+            <div className="absolute inset-y-0 right-1 w-px bg-[color:rgba(61,43,31,0.18)]" />
+            <div className="absolute inset-y-8 right-0 w-2 rounded-full bg-[color:rgba(250,247,242,0.0)]" />
+          </div>
 
           <SidebarChat
             accountName={account.name}
@@ -148,17 +247,6 @@ export function CompassApp() {
             onResetOnboarding={() => setIsOnboarded(false)}
           />
         </aside>
-
-        {!isSidebarOpen && (
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            className="absolute left-4 top-20 z-20 grid h-11 w-11 place-items-center rounded-full border border-[color:rgba(122,85,68,0.28)] bg-[color:rgba(250,247,242,0.92)] text-[22px] text-[color:var(--color-coffee)] shadow-[0_10px_30px_rgba(61,43,31,0.12)]"
-            aria-label="Open chat sidebar"
-          >
-            ›
-          </button>
-        )}
 
         <div className="pointer-events-none absolute inset-x-0 top-5 z-20 flex justify-center px-6">
           <div className="pointer-events-auto flex gap-2 rounded-[18px] bg-[color:rgba(250,247,242,0.82)] p-2 shadow-[0_12px_30px_rgba(61,43,31,0.12)] backdrop-blur-sm">

@@ -29,9 +29,9 @@ const presetPrompts = [
 
 function bubbleClass(role: "user" | "assistant") {
   if (role === "user") {
-    return "ml-auto max-w-[84%] rounded-[20px] rounded-br-[6px] bg-[color:var(--color-coffee)] px-4 py-3 text-[14px] leading-[1.55] text-[color:var(--color-cream)] shadow-[0_10px_24px_rgba(61,43,31,0.08)]";
+    return "max-w-[92%] self-end rounded-[18px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] px-4 py-3 text-[14px] leading-[1.6] text-[color:var(--color-ink)] shadow-[0_10px_24px_rgba(61,43,31,0.05)]";
   }
-  return "mr-auto max-w-[88%] rounded-[20px] rounded-bl-[6px] border border-[color:rgba(122,85,68,0.2)] bg-[color:rgba(250,247,242,0.94)] px-4 py-3 text-[14px] leading-[1.6] text-[color:var(--color-ink)] shadow-[0_10px_24px_rgba(61,43,31,0.05)]";
+  return "max-w-[92%] self-start rounded-[18px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] px-4 py-3 text-[14px] leading-[1.65] text-[color:var(--color-ink)] shadow-[0_10px_24px_rgba(61,43,31,0.05)]";
 }
 
 function tagStyle(label: string) {
@@ -123,6 +123,13 @@ export function SidebarChat({
 
       setMessages((prev) => [
         ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          content:
+            "Here is your itinerary. Pins are live on the map, and the day tabs are ready for you to browse.",
+        },
         {
           id: crypto.randomUUID(),
           role: "assistant",
@@ -237,96 +244,121 @@ export function SidebarChat({
         </div>
       )}
 
-      <div className="px-6 pb-3">
-        <SectionLabel>CHAT</SectionLabel>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
-        <div className="flex flex-col gap-3">
-          {messages.map((m) => {
-            if (m.kind === "itinerary") {
-              return (
-                <div key={m.id} className={bubbleClass("assistant")}>
-                  <div className="font-medium">{m.itinerary.title}</div>
-                  <div className="mt-1 text-[color:rgba(61,43,31,0.68)]">
-                    {m.itinerary.destination} · {m.itinerary.days.length} day
-                    {m.itinerary.days.length === 1 ? "" : "s"}
+      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] shadow-[0_18px_55px_rgba(61,43,31,0.10)]">
+          <div className="min-h-0 flex-1 overflow-auto px-5 py-5">
+            <div className="flex flex-col items-stretch gap-3">
+              {messages.map((m) => {
+                if (m.kind === "itinerary") {
+                  return (
+                    <div key={m.id} className={bubbleClass("assistant")}>
+                      <div className="text-[15px] font-medium">
+                        {m.itinerary.title}
+                      </div>
+                      <div className="mt-1 text-[13px] text-[color:rgba(61,43,31,0.72)]">
+                        {m.itinerary.destination} · {m.itinerary.days.length} day
+                        {m.itinerary.days.length === 1 ? "" : "s"}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const first =
+                              m.itinerary.days[0]?.places?.[0]?.name ?? null;
+                            if (!first) return;
+                            onSelectPlaceKey(`1::${first}`);
+                          }}
+                        >
+                          Jump to first stop
+                        </Button>
+                        <Button
+                          variant="mono"
+                          size="sm"
+                          onClick={() => {
+                            setDraft("More cafes, fewer landmarks.");
+                          }}
+                        >
+                          refine
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={m.id} className={bubbleClass(m.role)}>
+                    {m.content}
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const first =
-                          m.itinerary.days[0]?.places?.[0]?.name ?? null;
-                        if (!first) return;
-                        onSelectPlaceKey(`1::${first}`);
-                      }}
-                    >
-                      Jump to first stop
-                    </Button>
-                    <Button
-                      variant="mono"
-                      size="sm"
-                      onClick={() => {
-                        setDraft("More cafes, fewer landmarks.");
-                      }}
-                    >
-                      refine
-                    </Button>
-                  </div>
-                </div>
-              );
-            }
-            return (
-              <div key={m.id} className={bubbleClass(m.role)}>
-                {m.content}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="px-6 pb-5">
-        <div className="flex flex-wrap gap-2 pb-3">
-          {presetPrompts.map((p) => (
-            <button
-              key={p}
-              className="rounded-[999px] border border-[color:rgba(122,85,68,0.25)] bg-[color:rgba(250,247,242,0.62)] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--color-coffee)] hover:bg-[color:rgba(122,85,68,0.08)]"
-              onClick={() => send(p)}
-              disabled={isSending || !travelProfile}
-              type="button"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!canSend) return;
-            void send(draft);
-          }}
-          className="flex items-end gap-2"
-        >
-          <div className="flex-1">
-            <div className="relative">
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Ask for a trip plan…"
-                className="min-h-[54px] w-full resize-none rounded-[18px] border border-[color:rgba(122,85,68,0.28)] bg-[color:var(--color-cream)] px-4 py-3 pr-10 text-[15px] leading-[1.45] outline-none focus:border-[color:var(--color-coffee)] focus:ring-4 focus:ring-[color:rgba(122,85,68,0.12)] placeholder:text-[color:rgba(61,43,31,0.45)]"
-              />
-              <div className="pointer-events-none absolute bottom-4 right-3 font-mono text-[11px] text-[color:rgba(61,43,31,0.45)]">
-                ↵
-              </div>
+                );
+              })}
             </div>
           </div>
-          <Button type="submit" disabled={!canSend} className="h-[54px] rounded-[18px] px-5 text-[13px]">
-            {isSending ? "Generating…" : "Generate"}
-          </Button>
-        </form>
+
+          <div className="border-t border-[color:rgba(122,85,68,0.14)] bg-[color:rgba(250,247,242,0.65)] px-4 py-4">
+            <div className="flex flex-wrap gap-2 pb-3">
+              {presetPrompts.map((p) => (
+                <button
+                  key={p}
+                  className="rounded-[999px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] px-3 py-2 text-[12px] leading-[1.3] text-[color:var(--color-ink)] hover:bg-[color:rgba(122,85,68,0.06)]"
+                  onClick={() => send(p)}
+                  disabled={isSending || !travelProfile}
+                  type="button"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!canSend) return;
+                void send(draft);
+              }}
+              className="flex items-stretch gap-3"
+            >
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">Message</span>
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder="Ask for a plan or refinement…"
+                  rows={2}
+                  className="min-h-[56px] w-full resize-none rounded-[18px] border border-[color:rgba(122,85,68,0.22)] bg-white px-4 py-3 pr-12 text-[15px] leading-[1.45] text-[color:var(--color-ink)] outline-none focus:border-[color:var(--color-coffee)] focus:ring-4 focus:ring-[color:rgba(122,85,68,0.12)] placeholder:text-[color:rgba(61,43,31,0.45)]"
+                />
+                <div className="pointer-events-none absolute bottom-3 right-3 font-mono text-[12px] text-[color:rgba(61,43,31,0.42)]">
+                  ↵
+                </div>
+              </label>
+
+              <button
+                type="submit"
+                disabled={!canSend}
+                aria-label={isSending ? "Sending" : "Send message"}
+                className="grid h-[56px] w-[56px] shrink-0 place-items-center rounded-[16px] bg-[color:var(--color-coffee)] text-[color:var(--color-cream)] shadow-[0_12px_30px_rgba(61,43,31,0.14)] transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-coffee),black_10%)] disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {isSending ? (
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em]">
+                    …
+                  </span>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M3 11.5L21 3L12.5 21L10.5 13.5L3 11.5Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
