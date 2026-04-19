@@ -73,3 +73,6 @@ textarea {
   box-shadow: 0 10px 30px rgba(61, 43, 31, 0.12) !important;
   padding: 14px !important;
 }
+.mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right {
+  display: none !important;
+}

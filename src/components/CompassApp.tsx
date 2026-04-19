@@ -52,7 +52,8 @@ export function CompassApp() {
       role: "assistant",
       kind: "text",
       content:
-        "Share your travel profile to start. I will turn your chat requests into a mapped day-by-day itinerary.",
+        // "Share your travel profile to start. I will turn your chat requests into a mapped day-by-day itinerary.",
+        "Ask for a plan anytime, for example: “Plan me a 3-day relaxed food trip in Tokyo.”"
     },
   ]);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
@@ -177,21 +178,21 @@ export function CompassApp() {
 
   return (
     <div className="relative min-h-[100dvh] w-full overflow-hidden bg-[color:var(--color-paper)] text-[color:var(--color-ink)]">
-      <div className="pointer-events-none absolute left-8 top-6 font-mono text-[11px] uppercase tracking-[0.18em] text-[color:var(--color-sand)]/50">
-        Wandermap · Design System v0.1
-      </div>
-      <div className="pointer-events-none absolute bottom-6 right-8 font-mono text-[11px] uppercase tracking-[0.18em] text-[color:var(--color-sand)]/50">
-        April 2026
-      </div>
 
-      <main className="relative h-[100dvh] w-full">
-        <MapView
-          itinerary={itinerary}
-          places={allPlaces}
-          selectedPlaceKey={selectedPlaceKey}
-          onSelectPlaceKey={setSelectedPlaceKey}
-          accountName={account.name}
-        />
+
+      <main 
+        className="relative flex h-[100dvh] w-full gap-4 p-4 transition-all duration-300 ease-out"
+        style={{ paddingLeft: `calc(${isSidebarOpen ? sidebarWidth : 0}px + 1rem)` }}
+      >
+        <div className="relative flex-1 overflow-hidden rounded-[24px] border border-[color:rgba(122,85,68,0.25)] shadow-sm bg-white">
+          <MapView
+            itinerary={itinerary}
+            places={allPlaces}
+            selectedPlaceKey={selectedPlaceKey}
+            onSelectPlaceKey={setSelectedPlaceKey}
+            accountName={account.name}
+          />
+        </div>
 
         <aside
           style={{
@@ -248,20 +249,7 @@ export function CompassApp() {
           />
         </aside>
 
-        <div className="pointer-events-none absolute inset-x-0 top-5 z-20 flex justify-center px-6">
-          <div className="pointer-events-auto flex gap-2 rounded-[18px] bg-[color:rgba(250,247,242,0.82)] p-2 shadow-[0_12px_30px_rgba(61,43,31,0.12)] backdrop-blur-sm">
-            {(itinerary?.days ?? [{ day: 1 }, { day: 2 }]).slice(0, 3).map((d) => (
-              <div
-                key={d.day}
-                className="rounded-[14px] bg-[color:var(--color-olive)] px-6 py-2 font-mono text-[13px] uppercase tracking-[0.12em] text-[color:var(--color-cream)]"
-              >
-                Day {d.day}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="absolute bottom-6 right-6 z-20 w-[370px] max-w-[calc(100vw-2rem)]">
+        <div className="w-[360px] shrink-0">
           <ItineraryPanel
             itinerary={itinerary}
             selectedPlaceKey={selectedPlaceKey}
@@ -269,6 +257,9 @@ export function CompassApp() {
           />
         </div>
       </main>
+      <div className="pointer-events-none absolute bottom-4 right-6 font-mono text-[10px] tracking-[0.18em] text-[color:rgba(61,43,31,0.35)] z-10">
+        APRIL 2026
+      </div>
     </div>
   );
 }

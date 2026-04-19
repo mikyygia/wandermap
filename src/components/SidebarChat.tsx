@@ -7,22 +7,21 @@ import { CornerMarks } from "@/components/ui/CornerMarks";
 import { DiamondRule } from "@/components/ui/DiamondRule";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
-export type ChatMessage =
+export type ChatMessage = 
   | {
-      id: string;
-      role: "user" | "assistant";
-      kind: "text";
-      content: string;
-    }
+    id: string;
+    role: "user" | "assistant";
+    kind: "text";
+    content: string;
+  }
   | {
-      id: string;
-      role: "assistant";
-      kind: "itinerary";
-      itinerary: Itinerary;
-    };
+    id: string;
+    role: "assistant";
+    kind: "itinerary";
+    itinerary: Itinerary;
+  };
 
 const presetPrompts = [
-  "Plan me a 3-day relaxed food trip in Tokyo",
   "2 days in Paris: museums + cafes, medium budget",
   "Weekend in NYC: landmarks and nightlife",
 ];
@@ -171,78 +170,30 @@ export function SidebarChat({
       <header className="px-6 pb-5 pt-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-[color:rgba(61,43,31,0.72)]">
-              Travel Desk
+            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-[color:rgba(61,43,31,0.72)]">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>
+              <span>Travel Desk</span>
             </div>
+
             <div className="mt-3 text-[28px] leading-[1.05] font-light tracking-[-0.03em] text-[color:var(--color-ink)]">
-              Welcome{accountName ? `, ${accountName}` : ""}.
+              guide for{accountName ? ` ${accountName}` : ""}
             </div>
-            <div className="mt-2 max-w-[24ch] text-[15px] leading-[1.55] text-[color:rgba(61,43,31,0.78)]">
-              Ask for a route, a vibe, or a specific destination and the map
-              will fill in live.
-            </div>
+
+            <button
+              type="button"
+              onClick={onResetOnboarding}
+              className="mt-3 flex items-center gap-1.5 text-[13px] font-medium text-[color:var(--color-coffee)] hover:text-[color:var(--color-ink)] transition-colors underline decoration-[color:rgba(122,85,68,0.25)] underline-offset-[3px]"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>edit profile</span>
+            </button>
             <div className="mt-4 font-mono text-[11px] uppercase tracking-[0.12em] text-[color:rgba(61,43,31,0.65)]">
               {profileSummary}
             </div>
           </div>
-          <Button variant="mono" onClick={onResetOnboarding}>
-            Edit setup
-          </Button>
         </div>
         <DiamondRule className="mt-5 mb-0" />
       </header>
-
-      {travelProfile && (
-        <div className="px-6 pb-5">
-          <SectionLabel>PROFILE SNAPSHOT</SectionLabel>
-
-          <div className="mt-4 rounded-[22px] border border-[color:rgba(122,85,68,0.22)] bg-[color:rgba(250,247,242,0.88)] p-4 shadow-[0_18px_50px_rgba(61,43,31,0.08)]">
-            <div className="grid gap-4">
-              <div>
-                <div className="text-[13px] font-medium text-[color:rgba(61,43,31,0.7)]">
-                  Style
-                </div>
-                <div className="mt-1 text-[17px] capitalize text-[color:var(--color-ink)]">
-                  {travelProfile.travel_style}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-[13px] font-medium text-[color:rgba(61,43,31,0.7)]">
-                    Budget
-                  </div>
-                  <div className="mt-1 text-[17px] capitalize">{travelProfile.budget}</div>
-                </div>
-                <div>
-                  <div className="text-[13px] font-medium text-[color:rgba(61,43,31,0.7)]">
-                    Group
-                  </div>
-                  <div className="mt-1 text-[17px] capitalize">
-                    {travelProfile.group_type}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="text-[13px] font-medium text-[color:rgba(61,43,31,0.7)]">
-                  Interests
-                </div>
-                <div className="mt-3 flex flex-wrap gap-[8px]">
-                  {travelProfile.interests.map((it) => (
-                    <div
-                      key={it}
-                      className={`rounded-[999px] border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.08em] ${tagStyle(
-                        it,
-                      )}`}
-                    >
-                      {it}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] shadow-[0_18px_55px_rgba(61,43,31,0.10)]">
@@ -322,7 +273,7 @@ export function SidebarChat({
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Ask for a plan or refinement…"
+                  placeholder="what should we do?"
                   rows={2}
                   className="min-h-[56px] w-full resize-none rounded-[18px] border border-[color:rgba(122,85,68,0.22)] bg-white px-4 py-3 pr-12 text-[15px] leading-[1.45] text-[color:var(--color-ink)] outline-none focus:border-[color:var(--color-coffee)] focus:ring-4 focus:ring-[color:rgba(122,85,68,0.12)] placeholder:text-[color:rgba(61,43,31,0.45)]"
                 />

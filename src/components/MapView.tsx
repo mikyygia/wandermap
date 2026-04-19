@@ -149,39 +149,24 @@ export function MapView({
   }, [selectedPlaceKey, places]);
 
   return (
-    <div className="relative h-[100dvh] w-full">
-      <CornerMarks />
-      <div className="absolute left-16 top-20 z-10 w-[440px] max-w-[58%] rounded-[24px] border border-[color:rgba(122,85,68,0.22)] bg-[color:rgba(250,247,242,0.92)] p-5 shadow-[0_18px_55px_rgba(61,43,31,0.12)] backdrop-blur-sm">
-        <SectionLabel>MAP</SectionLabel>
-        <div className="mt-3 flex items-center justify-between gap-4">
-          <div>
-            <div className="text-[16px] font-medium text-[color:var(--color-ink)]">
-              {itinerary?.destination ?? `Ready when you are${accountName ? `, ${accountName}` : ""}`}
-            </div>
-            <div className="mt-2 text-[14px] leading-[1.6] text-[color:rgba(61,43,31,0.78)]">
-              {itinerary
-                ? "Pins and day tabs update from the AI response in one step."
-                : "Open the travel desk, ask for a 1–3 day plan, and Compass will plot the stops for you."}
-            </div>
-            <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[color:rgba(61,43,31,0.58)]">
-              {places.length === 0
-                ? "Awaiting itinerary…"
-                : `${places.length} stops · ${itinerary?.days.length ?? 0} day${
-                    (itinerary?.days.length ?? 0) === 1 ? "" : "s"
-                  }`}
-            </div>
+    <div className="relative h-full w-full">
+      {mapboxToken && (
+        <div className="absolute left-4 top-4 z-20 w-[200px] overflow-hidden rounded border border-[color:rgba(122,85,68,0.2)] bg-[color:rgba(250,247,242,0.85)] shadow-sm backdrop-blur-md">
+          <div className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:#E87E04]">
+            MAP CANVAS
           </div>
-          {selectedPlaceKey && (
-            <button
-              type="button"
-              onClick={() => onSelectPlaceKey(null)}
-              className="rounded-[12px] border border-[color:rgba(122,85,68,0.24)] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[color:var(--color-coffee)] hover:bg-[color:rgba(122,85,68,0.08)]"
-            >
-              Clear
-            </button>
-          )}
+          <div className="border-t border-[color:rgba(122,85,68,0.1)] px-3 py-2 text-[13px] text-[color:rgba(61,43,31,0.8)]">
+            {places.length === 0 ? "No destination yet" : itinerary?.destination}
+          </div>
         </div>
-      </div>
+      )}
+      {places.length === 0 && mapboxToken && (
+        <div className="pointer-events-none absolute bottom-8 inset-x-0 flex justify-center z-20">
+          <div className="rounded border border-[color:rgba(122,85,68,0.25)] bg-[color:rgba(250,247,242,0.65)] px-6 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[color:rgba(61,43,31,0.65)] backdrop-blur-md">
+            PINS APPEAR HERE AFTER ITINERARY GENERATION
+          </div>
+        </div>
+      )}
 
       <div ref={containerRef} className="h-full w-full" />
 
