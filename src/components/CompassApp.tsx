@@ -39,6 +39,7 @@ export function CompassApp() {
   const [isReady, setIsReady] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLedgerOpen, setIsLedgerOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_DEFAULT);
   const dragRef = useRef<{
     pointerId: number;
@@ -182,7 +183,7 @@ export function CompassApp() {
 
       <main 
         className="relative flex h-[100dvh] w-full gap-4 p-4 transition-all duration-300 ease-out"
-        style={{ paddingLeft: `calc(${isSidebarOpen ? sidebarWidth : 0}px + 1rem)` }}
+        style={{ paddingLeft: `calc(${isSidebarOpen ? sidebarWidth : 60}px + 1rem)` }}
       >
         <div className="relative flex-1 overflow-hidden rounded-[24px] border border-[color:rgba(122,85,68,0.25)] shadow-sm bg-white">
           <MapView
@@ -195,23 +196,9 @@ export function CompassApp() {
         </div>
 
         <aside
-          style={{
-            width: sidebarWidth,
-            transform: isSidebarOpen
-              ? "translateX(0)"
-              : "translateX(calc(-100% + 14px))",
-            transition: "transform 300ms ease-out",
-          }}
-          className="absolute inset-y-0 left-0 z-30 border-r border-[color:rgba(122,85,68,0.2)] bg-[color:#c9b59f] shadow-[18px_0_60px_rgba(61,43,31,0.12)]"
+          style={{ width: isSidebarOpen ? sidebarWidth : 60 }}
+          className="absolute inset-y-0 left-0 z-30 border-r border-[color:rgba(122,85,68,0.2)] bg-[color:#c9b59f] shadow-[18px_0_60px_rgba(61,43,31,0.12)] transition-all duration-300 ease-out overflow-hidden"
         >
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen((prev) => !prev)}
-            aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            className="absolute -right-3 top-16 z-40 grid h-10 w-10 place-items-center rounded-full border border-[color:rgba(61,43,31,0.24)] bg-[color:rgba(250,247,242,0.95)] text-[18px] leading-none text-[color:var(--color-coffee)] shadow-[0_10px_30px_rgba(61,43,31,0.12)]"
-          >
-            {isSidebarOpen ? "‹‹" : "››"}
-          </button>
 
           <div
             role="separator"
@@ -246,14 +233,18 @@ export function CompassApp() {
             onItinerary={setItinerary}
             onSelectPlaceKey={setSelectedPlaceKey}
             onResetOnboarding={() => setIsOnboarded(false)}
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           />
         </aside>
 
-        <div className="w-[360px] shrink-0">
+        <div className={`shrink-0 transition-all duration-300 ease-out ${isLedgerOpen ? "w-[360px]" : "w-[60px]"}`}>
           <ItineraryPanel
             itinerary={itinerary}
             selectedPlaceKey={selectedPlaceKey}
             onSelectPlaceKey={setSelectedPlaceKey}
+            isOpen={isLedgerOpen}
+            onToggle={() => setIsLedgerOpen(!isLedgerOpen)}
           />
         </div>
       </main>

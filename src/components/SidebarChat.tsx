@@ -7,7 +7,7 @@ import { CornerMarks } from "@/components/ui/CornerMarks";
 import { DiamondRule } from "@/components/ui/DiamondRule";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
-export type ChatMessage = 
+export type ChatMessage =
   | {
     id: string;
     role: "user" | "assistant";
@@ -58,6 +58,8 @@ export function SidebarChat({
   onItinerary,
   onSelectPlaceKey,
   onResetOnboarding,
+  isOpen,
+  onToggle,
 }: {
   accountName: string;
   travelProfile: TravelProfile | null;
@@ -66,6 +68,8 @@ export function SidebarChat({
   onItinerary: (it: Itinerary) => void;
   onSelectPlaceKey: (key: string | null) => void;
   onResetOnboarding: () => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -163,6 +167,19 @@ export function SidebarChat({
     }
   }
 
+  if (!isOpen) {
+    return (
+      <div className="relative flex h-[100dvh] flex-col items-center pt-8 text-[color:var(--color-ink)]">
+        <button type="button" onClick={onToggle} className="flex h-7 w-7 items-center justify-center rounded border border-[color:rgba(122,85,68,0.2)] text-[color:rgba(61,43,31,0.6)] hover:bg-[color:rgba(122,85,68,0.05)] bg-[color:#fffdf9] shadow-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+        <div className="mt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:rgba(61,43,31,0.5)] [writing-mode:vertical-lr] rotate-180">
+          TRAVEL DESK
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-[100dvh] flex-col">
       <CornerMarks />
@@ -191,6 +208,10 @@ export function SidebarChat({
               {profileSummary}
             </div>
           </div>
+
+          <button type="button" onClick={onToggle} className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-[color:rgba(122,85,68,0.2)] text-[color:rgba(61,43,31,0.6)] hover:cursor-pointer shadow-sm mt-1 p-2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
         </div>
         <DiamondRule className="mt-5 mb-0" />
       </header>
@@ -246,19 +267,21 @@ export function SidebarChat({
           </div>
 
           <div className="border-t border-[color:rgba(122,85,68,0.14)] bg-[color:rgba(250,247,242,0.65)] px-4 py-4">
-            <div className="flex flex-wrap gap-2 pb-3">
-              {presetPrompts.map((p) => (
-                <button
-                  key={p}
-                  className="rounded-[999px] border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] px-3 py-2 text-[12px] leading-[1.3] text-[color:var(--color-ink)] hover:bg-[color:rgba(122,85,68,0.06)]"
-                  onClick={() => send(p)}
-                  disabled={isSending || !travelProfile}
-                  type="button"
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
+            {messages.length <= 1 && (
+              <div className="flex flex-wrap gap-2 pb-3">
+                {presetPrompts.map((p) => (
+                  <button
+                    key={p}
+                    className="rounded-lg border border-[color:rgba(122,85,68,0.22)] bg-[color:#fffdf9] px-3 py-2 text-[12px] leading-[1.3] text-[color:var(--color-ink)] hover:bg-[color:rgba(122,85,68,0.06)]"
+                    onClick={() => send(p)}
+                    disabled={isSending || !travelProfile}
+                    type="button"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <form
               onSubmit={(e) => {

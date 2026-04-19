@@ -35,10 +35,14 @@ export function ItineraryPanel({
   itinerary,
   selectedPlaceKey,
   onSelectPlaceKey,
+  isOpen,
+  onToggle,
 }: {
   itinerary: Itinerary | null;
   selectedPlaceKey: string | null;
   onSelectPlaceKey: (k: string | null) => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
   const [activeDay, setActiveDay] = useState<number>(1);
 
@@ -51,6 +55,19 @@ export function ItineraryPanel({
 
   const active = days.find((d) => d.day === safeActiveDay) ?? null;
 
+  if (!isOpen) {
+    return (
+      <div className="relative flex h-full flex-col items-center pt-6 text-[color:var(--color-ink)] border-l border-[color:rgba(122,85,68,0.15)] bg-[color:rgba(232,227,218,0.4)]">
+        <button type="button" onClick={onToggle} className="flex h-7 w-7 items-center justify-center rounded border border-[color:rgba(122,85,68,0.2)] text-[color:rgba(61,43,31,0.6)] hover:bg-[color:rgba(122,85,68,0.05)]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div className="mt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:rgba(61,43,31,0.5)] [writing-mode:vertical-lr] rotate-180">
+          ITINERARY LEDGER
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-full flex-col p-6 text-[color:var(--color-ink)]">
       <CornerMarks />
@@ -59,7 +76,7 @@ export function ItineraryPanel({
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:rgba(61,43,31,0.5)]">
           ITINERARY LEDGER
         </div>
-        <button type="button" className="flex h-7 w-7 items-center justify-center rounded border border-[color:rgba(122,85,68,0.2)] text-[color:rgba(61,43,31,0.6)] hover:bg-[color:rgba(122,85,68,0.05)]">
+        <button type="button" onClick={onToggle} className="flex h-7 w-7 items-center justify-center rounded border border-[color:rgba(122,85,68,0.2)] text-[color:rgba(61,43,31,0.6)] hover:bg-[color:rgba(122,85,68,0.05)]">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </header>
